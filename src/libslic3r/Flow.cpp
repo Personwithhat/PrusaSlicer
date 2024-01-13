@@ -122,7 +122,7 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
         w = width.get_abs_value(nozzle_diameter);
     }
     
-    return Flow(w, height, rounded_rectangle_extrusion_spacing((float)w, height), nozzle_diameter, false);
+    return Flow(rounded_rectangle_extrusion_width_from_spacing((float)w, height), height, (float)w, nozzle_diameter, false);
 }
 
 // Adjust extrusion flow for new extrusion line spacing, maintaining the old spacing between extrusions.

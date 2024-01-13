@@ -140,7 +140,7 @@ public:
     // and the filament crossection is 1.75^2 = 3.063mm2
     // thus the filament moves 3.063 / 0.6 = 51x slower than the XY axes
     // and we need roughly two decimal digits more on extruder than on XY.
-#if 1
+#if 0
     static constexpr const int XYZF_EXPORT_DIGITS = 3;
     static constexpr const int E_EXPORT_DIGITS    = 5;
 #else
