@@ -25,7 +25,7 @@ FlowErrorNegativeFlow::FlowErrorNegativeFlow() :
     FlowError("Flow::mm3_per_mm() produced negative flow. Did you set some extrusion width too small?") {}
 
 // This static method returns a sane extrusion width default.
-float Flow::auto_extrusion_width(FlowRole role, float nozzle_diameter)
+double Flow::auto_extrusion_width(FlowRole role, double nozzle_diameter)
 {
     switch (role) {
     case frSupportMaterial:
@@ -73,8 +73,6 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 {
 	assert(opt != nullptr);
 
-	bool first_layer = boost::starts_with(opt_key, "first_layer_");
-
 #if 0
 // This is the logic used for skit / brim, but not for the rest of the 1st layer.
 	if (opt->value == 0. && first_layer) {
@@ -90,28 +88,16 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 		opt = config.option<ConfigOptionFloatOrPercent>("extrusion_width");
 		if (opt == nullptr)
     		throw_on_missing_variable(opt_key, "extrusion_width");
-    	// Use the "layer_height" instead of "first_layer_height".
-    	first_layer = false;
 	}
 
-	if (opt->percent) {
-		auto opt_key_layer_height = first_layer ? "first_layer_height" : "layer_height";
-        auto opt_layer_height = config.option(opt_key_layer_height);
-    	if (opt_layer_height == nullptr)
-    		throw_on_missing_variable(opt_key, opt_key_layer_height);
-        assert(! first_layer || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent);
-		return opt->get_abs_value(opt_layer_height->getFloat());
-	}
+    auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
+    if (opt_nozzle_diameters == nullptr)
+        throw_on_missing_variable(opt_key, "nozzle_diameter");
+    double nozzle_diameter = opt_nozzle_diameters->get_at(first_printing_extruder);
 
-	if (opt->value == 0.) {
-        // If user left option to 0, calculate a sane default width.
-    	auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
-    	if (opt_nozzle_diameters == nullptr)
-    		throw_on_missing_variable(opt_key, "nozzle_diameter");
-        return auto_extrusion_width(opt_key_to_flow_role(opt_key), float(opt_nozzle_diameters->get_at(first_printing_extruder)));
-    }
-
-	return opt->value;
+    return (!opt->percent && opt->value == 0.) 
+                ? auto_extrusion_width(opt_key_to_flow_role(opt_key), nozzle_diameter) // Default to a sane value if width is unset
+                : opt->get_abs_value(nozzle_diameter);
 }
 
 // Used to provide hints to the user on default extrusion width values, and to provide reasonable values to the PlaceholderParser.
@@ -127,16 +113,16 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
     if (height <= 0)
         throw Slic3r::InvalidArgument("Invalid flow height supplied to new_from_config_width()");
 
-    float w;
+    double w;
     if (! width.percent && width.value == 0.) {
         // If user left option to 0, calculate a sane default width.
         w = auto_extrusion_width(role, nozzle_diameter);
     } else {
         // If user set a manual value, use it.
-        w = float(width.get_abs_value(height));
+        w = width.get_abs_value(nozzle_diameter);
     }
     
-    return Flow(w, height, rounded_rectangle_extrusion_spacing(w, height), nozzle_diameter, false);
+    return Flow(w, height, rounded_rectangle_extrusion_spacing((float)w, height), nozzle_diameter, false);
 }
 
 // Adjust extrusion flow for new extrusion line spacing, maintaining the old spacing between extrusions.
