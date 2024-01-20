@@ -136,6 +136,10 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     bool support_material_extruder_active           = feature_extruder_active(print_config.opt_int("support_material_extruder"));
     bool support_material_interface_extruder_active = feature_extruder_active(print_config.opt_int("support_material_interface_extruder"));
 
+    // Different ratio for solid bridge fills
+    if (solid_infill_extruder_active)
+        bridge_flow_ratio = print_config.opt_float("bridge_fill_flow_ratio");
+
     // Current filament values
     double filament_diameter                = filament_config.opt_float("filament_diameter", 0);
     double filament_crossection             = M_PI * 0.25 * filament_diameter * filament_diameter;

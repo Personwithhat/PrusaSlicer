@@ -45,10 +45,10 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool force_thick_bridges) const
         // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
         auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
         // Applies default bridge spacing.
-        return Flow::bridging_flow(float(sqrt(region_config.bridge_flow_ratio)) * nozzle_diameter, nozzle_diameter);
+        return Flow::bridging_flow(float(sqrt(region_config.bridge_fill_flow_ratio)) * nozzle_diameter, nozzle_diameter);
     } else {
         // The same way as other slicers: Use normal extrusions. Apply bridge_flow_ratio while maintaining the original spacing.
-        return this->flow(role).with_flow_ratio(region_config.bridge_flow_ratio);
+        return this->flow(role).with_flow_ratio(region_config.bridge_flow_ratio, region_config.bridge_spacing);
     }
 }
 

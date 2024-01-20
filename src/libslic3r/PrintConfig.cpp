@@ -566,6 +566,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("bridge_fill_flow_ratio", coFloat);
+    def->label = L("Bridge infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of plastic for bridge infills");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("bridge_spacing", coFloat);
+    def->label = L("Bridge spacing");
+    def->category = L("Advanced");
+    def->tooltip = L("This multiplier adjusts gap between individual bridge lines "
+                   "You can increase or decrease to adjust overlap. Does not affect Thick bridges.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridges");
     def->category = L("Speed");
@@ -4694,6 +4713,12 @@ std::string validate(const FullPrintConfig &cfg)
     // --bridge-flow-ratio
     if (cfg.bridge_flow_ratio <= 0)
         return "Invalid value for --bridge-flow-ratio";
+    // --bridge-fill-flow-ratio
+    if (cfg.bridge_fill_flow_ratio <= 0)
+        return "Invalid value for --bridge-fill-flow-ratio";
+    // --bridge-spacing
+    if (cfg.bridge_spacing <= 0)
+        return "Invalid value for --bridge-spacing";
 
     // extruder clearance
     if (cfg.extruder_clearance_radius <= 0)

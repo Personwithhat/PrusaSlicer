@@ -91,7 +91,7 @@ public:
 
     Flow        with_width (float width)  const { 
         assert(! m_bridge); 
-        return Flow(width, m_height, rounded_rectangle_extrusion_spacing(width, m_height), m_nozzle_diameter, m_bridge);
+        return Flow(width, m_height, m_spacing, m_nozzle_diameter, m_bridge);
     }
     Flow        with_height(float height) const { 
         assert(! m_bridge); 
@@ -100,8 +100,8 @@ public:
     // Adjust extrusion flow for new extrusion line spacing, maintaining the old spacing between extrusions.
     Flow        with_spacing(float spacing) const;
     // Adjust the width / height of a rounded extrusion model to reach the prescribed cross section area while maintaining extrusion spacing.
-    Flow        with_cross_section(float area) const;
-    Flow        with_flow_ratio(double ratio) const { return this->with_cross_section(this->mm3_per_mm() * ratio); }
+    Flow        with_cross_section(float area, double space_ratio = 1.0) const;
+    Flow        with_flow_ratio(double ratio, double space_ratio = 1.0) const { return this->with_cross_section(this->mm3_per_mm() * ratio, space_ratio); }
 
     static Flow bridging_flow(float dmr, float nozzle_diameter) { return Flow { dmr, dmr, bridge_extrusion_spacing(dmr), nozzle_diameter, true }; }
 

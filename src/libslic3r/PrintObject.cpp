@@ -856,7 +856,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "thick_bridges") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bridge_flow_ratio") {
+        } else if (opt_key == "bridge_flow_ratio" 
+            || opt_key == "bridge_fill_flow_ratio" 
+            || opt_key == "bridge_spacing") {
             if (m_config.support_material_contact_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
             	// If later "support_material_contact_distance" is modified, the complete PrintObject is invalidated anyway.

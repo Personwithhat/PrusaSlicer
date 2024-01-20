@@ -146,7 +146,7 @@ Flow Flow::with_spacing(float new_spacing) const
 }
 
 // Adjust the width / height of a rounded extrusion model to reach the prescribed cross section area while maintaining extrusion spacing.
-Flow Flow::with_cross_section(float area_new) const
+Flow Flow::with_cross_section(float area_new, double space_ratio) const
 {
     assert(! m_bridge);
     assert(m_width >= m_height);
@@ -169,7 +169,7 @@ Flow Flow::with_cross_section(float area_new) const
         assert(width_new > 0);
         if (width_new > m_height) {
             // Shrink the extrusion width.
-            return this->with_width(width_new);
+            return Flow(width_new, m_height, rounded_rectangle_extrusion_spacing(width_new,m_height) * space_ratio, m_nozzle_diameter, m_bridge);
         } else {
             // Create a rounded extrusion.
             auto dmr = 2.0 * float(sqrt(area_new / M_PI));
