@@ -858,6 +858,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow_ratio" 
             || opt_key == "bridge_fill_flow_ratio" 
+            || opt_key == "bridge_fill_spacing"
             || opt_key == "bridge_spacing") {
             if (m_config.support_material_contact_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.

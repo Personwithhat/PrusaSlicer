@@ -153,30 +153,8 @@ Flow Flow::with_cross_section(float area_new, double space_ratio) const
 
     // Adjust for bridge_flow_ratio, maintain the extrusion spacing.
     float area = this->mm3_per_mm();
-    if (area_new > area + EPSILON) {
-        // Increasing the flow rate.
-        float new_full_spacing = area_new / m_height;
-        if (new_full_spacing > m_spacing) {
-            // Filling up the spacing without an air gap. Grow the extrusion in height.
-            float height = area_new / m_spacing;
-            return Flow(rounded_rectangle_extrusion_width_from_spacing(m_spacing, height), height, m_spacing, m_nozzle_diameter, false);
-        } else {
-            return this->with_width(rounded_rectangle_extrusion_width_from_spacing(area / m_height, m_height));
-        }
-    } else if (area_new < area - EPSILON) {
-        // Decreasing the flow rate.
-        float width_new = m_width - (area - area_new) / m_height;
-        assert(width_new > 0);
-        if (width_new > m_height) {
-            // Shrink the extrusion width.
-            return Flow(width_new, m_height, rounded_rectangle_extrusion_spacing(width_new,m_height) * space_ratio, m_nozzle_diameter, m_bridge);
-        } else {
-            // Create a rounded extrusion.
-            auto dmr = 2.0 * float(sqrt(area_new / M_PI));
-            return Flow(dmr, dmr, m_spacing, m_nozzle_diameter, false);
-        }
-    } else
-        return *this;
+    float width_new = m_width - (area - area_new) / m_height;
+    return Flow(width_new, m_height, rounded_rectangle_extrusion_spacing(width_new, m_height) * space_ratio, m_nozzle_diameter, m_bridge);
 }
 
 float Flow::rounded_rectangle_extrusion_spacing(float width, float height)
