@@ -2196,9 +2196,6 @@ LayerResult GCodeGenerator::process_layer(
     m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
     m_last_height = height;
 
-    if (EXTRUDER_CONFIG(retract_layer_change))
-        gcode += this->retract_and_wipe();
-
     // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
     if (! print.config().before_layer_gcode.value.empty()) {
         DynamicConfig config;
@@ -2749,6 +2746,9 @@ std::string GCodeGenerator::change_layer(
         // Increment a progress bar indicator.
         gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
 
+    if (EXTRUDER_CONFIG(retract_layer_change))
+        gcode += this->retract_and_wipe();
+
     const std::string comment{"move to next layer (" + std::to_string(m_layer_index) + ")"};
 
     bool do_helical_layer_change{
@@ -2794,6 +2794,8 @@ static inline bool validate_smooth_path(const GCode::SmoothPath &smooth_path, bo
 #endif //NDEBUG
 
 static constexpr const double min_gcode_segment_length = 0.002;
+#define CTOWER false
+#define STOWER false
 
 std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GCode::SmoothPathCache &smooth_path_cache, const std::string_view description, double speed)
 {
@@ -2812,10 +2814,15 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
     // Clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case.
+    double sgap = STOWER ? (double) (int(m_layer_index / 5) * m_config.seam_gap) : m_config.seam_gap;
     if (m_enable_loop_clipping)
-        clip_end(smooth_path, scaled<double>(EXTRUDER_CONFIG(nozzle_diameter)) * m_config.seam_gap, scaled<double>(min_gcode_segment_length));
+        clip_end(smooth_path, scaled<double>(EXTRUDER_CONFIG(nozzle_diameter)) * sgap, scaled<double>(min_gcode_segment_length));
 
-    clip_end(smooth_path, scaled<double>((double)m_config.coast_length), scaled<double>(min_gcode_segment_length), true);
+    // If clength <0.25 some weird visual artifacts happen. Soon as its above 0.25 e.g. 0.255 it renders properly, instead of missing one piece early-ish.
+    // GCode looks fine though......
+    double clength = CTOWER ? (double) (int(m_layer_index / 5) * m_config.coast_length) : m_config.coast_length;
+    double res = clip_end(smooth_path, scaled<double>(clength), scaled<double>(min_gcode_segment_length), true);
+    assert(res == 0);
 
     if (smooth_path.empty())
         return {};
@@ -3284,6 +3291,18 @@ std::string GCodeGenerator::_extrude(
         gcode += ";_RESET_FAN_SPEED\n";
 
     if (path_attr.role == ExtrusionRoleModifier::Coast) {
+        if (CTOWER) {
+            double clength = (double) (int(m_layer_index / 5) * m_config.coast_length);
+            char   buf[32];
+            sprintf(buf, ";_COAST_LENGTH:%f\n", clength);
+            coast_path += buf;
+        }
+        if (STOWER) {
+            double sgap = (double) (int(m_layer_index / 5) * m_config.seam_gap);
+            char   buf[32];
+            sprintf(buf, ";_SEAM_GAP:%f -> %f\n", sgap, EXTRUDER_CONFIG(nozzle_diameter) * sgap);
+            coast_path += buf;
+        }
         coast_path += gcode;
         gcode = "";
     }
