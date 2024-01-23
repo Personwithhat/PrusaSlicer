@@ -2841,7 +2841,8 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
     // reset acceleration
     gcode += m_writer.set_print_acceleration(fast_round_up<unsigned int>(m_config.default_acceleration.value));
 
-    if (m_wipe.enabled()) {
+    // PERSONAL_TODO: More fun, found the wipe bit.
+ /* if (m_wipe.enabled()) {
         // Wipe will hide the seam.
         m_wipe.set_path(std::move(smooth_path), false);
     } else if (loop_src.paths.back().role().is_external_perimeter() && m_layer != nullptr && m_config.perimeters.value > 1) {
@@ -2853,7 +2854,7 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
             this->set_last_pos(*pt);
         }
     }
-
+*/
     return gcode;
 }
 
