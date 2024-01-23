@@ -683,6 +683,7 @@ const std::array<ColorRGBA, static_cast<size_t>(GCodeExtrusionRole::Count)> GCod
     { 0.00f, 0.50f, 0.00f, 1.0f },   // GCodeExtrusionRole::SupportMaterialInterface
     { 0.70f, 0.89f, 0.67f, 1.0f },   // GCodeExtrusionRole::WipeTower
     { 0.37f, 0.82f, 0.58f, 1.0f },   // GCodeExtrusionRole::Custom
+    { 0.5f, 0.5f, 0.5f, 1.0f },     // GCodeExtrusionRole::Coast
 }};
 
 const std::vector<ColorRGBA> GCodeViewer::Options_Colors{ {

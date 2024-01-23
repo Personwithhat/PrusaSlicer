@@ -31,6 +31,7 @@ GCodeExtrusionRole extrusion_role_to_gcode_extrusion_role(ExtrusionRole role)
     if (role == ExtrusionRole::SupportMaterial)     return GCodeExtrusionRole::SupportMaterial;
     if (role == ExtrusionRole::SupportMaterialInterface) return GCodeExtrusionRole::SupportMaterialInterface;
     if (role == ExtrusionRole::WipeTower)           return GCodeExtrusionRole::WipeTower;
+    if (role == ExtrusionRole::Coast)               return GCodeExtrusionRole::Coast;
     assert(false);
     return GCodeExtrusionRole::None;
 }
@@ -53,6 +54,7 @@ std::string gcode_extrusion_role_to_string(GCodeExtrusionRole role)
         case GCodeExtrusionRole::SupportMaterialInterface     : return L("Support material interface");
         case GCodeExtrusionRole::WipeTower                    : return L("Wipe tower");
         case GCodeExtrusionRole::Custom                       : return L("Custom");
+        case GCodeExtrusionRole::Coast                       : return L("Coast");
         default                             : assert(false);
     }
     return {};
@@ -88,6 +90,8 @@ GCodeExtrusionRole string_to_gcode_extrusion_role(const std::string_view role)
         return GCodeExtrusionRole::WipeTower;
     else if (role == L("Custom"))
         return GCodeExtrusionRole::Custom;
+    else if (role == L("Coast"))
+        return GCodeExtrusionRole::Coast;
     else
         return GCodeExtrusionRole::None;
 }

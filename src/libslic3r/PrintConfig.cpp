@@ -1487,6 +1487,33 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
+    def = this->add("coast_speed", coFloat);
+    def->label = L("Coast Speed");
+    def->category = L("Speed");
+    def->tooltip = L("Speed for coasting moves");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(20));
+
+    def = this->add("coast_length", coFloat);
+    def->label = L("Coast Length");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Amount of extrusion path to coast post-retraction");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+    
+    def = this->add("seam_gap", coFloat);
+    def->label = L("Seam Gap");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Gap size for closed-loop seams, based on nozzle diameter");
+    def->sidetext = L("");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER));
+
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
     def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "

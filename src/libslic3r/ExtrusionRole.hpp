@@ -35,6 +35,8 @@ enum class ExtrusionRoleModifier : uint16_t {
     // Indicator that the extrusion role was mixed from multiple differing extrusion roles,
     // for example from Support and SupportInterface.
     Mixed,
+    // Coasting extruder movements
+    Coast,
     // Stopper, there should be maximum 16 modifiers defined for uint16_t bit mask.
     Count
 };
@@ -82,6 +84,8 @@ struct ExtrusionRole : public ExtrusionRoleModifiers
     static constexpr const ExtrusionRoleModifiers WipeTower{ ExtrusionRoleModifier::Wipe };
     // Extrusion role for a collection with multiple extrusion roles.
     static constexpr const ExtrusionRoleModifiers Mixed{ ExtrusionRoleModifier::Mixed };
+    // Coasting extruder movements
+    static constexpr const ExtrusionRoleModifiers Coast{ExtrusionRoleModifier::Coast};
 
     bool is_perimeter() const { return this->ExtrusionRoleModifiers::has(ExtrusionRoleModifier::Perimeter); }
     bool is_external_perimeter() const { return this->is_perimeter() && this->is_external(); }
@@ -127,6 +131,7 @@ enum class GCodeExtrusionRole : uint8_t {
     WipeTower,
     // Custom (user defined) G-code block, for example start / end G-code.
     Custom,
+    Coast,
     // Stopper to count number of enums.
     Count
 };
