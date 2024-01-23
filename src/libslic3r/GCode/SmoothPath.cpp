@@ -105,11 +105,13 @@ std::optional<Point> sample_path_point_at_distance_from_end(const SmoothPath &pa
 // Clip length of a smooth path, for seam hiding.
 // When clipping the end of a path, don't create segments shorter than min_point_distance_threshold, 
 // rather discard such a degenerate segment.
-double clip_end(SmoothPath &path, double distance, double min_point_distance_threshold)
+double clip_end(SmoothPath &path, double distance, double min_point_distance_threshold, bool coast_clip)
 {
+    SmoothPathElement orig;
+    orig.path_attributes = path.back().path_attributes;
     while (! path.empty() && distance > 0) {
         Geometry::ArcWelder::Path &p = path.back().path;
-        distance = clip_end(p, distance);
+        distance = clip_end(p, distance, &orig.path);
         if (p.empty()) {
             path.pop_back();
         } else {
@@ -125,6 +127,13 @@ double clip_end(SmoothPath &path, double distance, double min_point_distance_thr
                 last_path.pop_back();
                 if (last_path.size() < 2)
                     path.pop_back();
+            }
+            if (coast_clip) {
+                orig.path_attributes.role       = ExtrusionRoleModifier::Coast;
+                orig.path_attributes.mm3_per_mm = 0.001; // HACK: If this is too low then it becomes a travel move in the View. The GCode appears to be unaffected. FIX! >.> 
+                orig.path.push_back(last_path.back());
+                std::reverse(orig.path.begin(), orig.path.end());
+                path.push_back(orig);
             }
             return 0;
         }

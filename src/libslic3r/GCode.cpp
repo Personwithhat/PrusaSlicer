@@ -2196,6 +2196,9 @@ LayerResult GCodeGenerator::process_layer(
     m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
     m_last_height = height;
 
+    if (EXTRUDER_CONFIG(retract_layer_change))
+        gcode += this->retract_and_wipe();
+
     // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
     if (! print.config().before_layer_gcode.value.empty()) {
         DynamicConfig config;
@@ -2746,9 +2749,6 @@ std::string GCodeGenerator::change_layer(
         // Increment a progress bar indicator.
         gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
 
-    if (EXTRUDER_CONFIG(retract_layer_change))
-        gcode += this->retract_and_wipe();
-
     const std::string comment{"move to next layer (" + std::to_string(m_layer_index) + ")"};
 
     bool do_helical_layer_change{
@@ -2813,7 +2813,9 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case.
     if (m_enable_loop_clipping)
-        clip_end(smooth_path, scaled<double>(EXTRUDER_CONFIG(nozzle_diameter)) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER, scaled<double>(min_gcode_segment_length));
+        clip_end(smooth_path, scaled<double>(EXTRUDER_CONFIG(nozzle_diameter)) * m_config.seam_gap, scaled<double>(min_gcode_segment_length));
+
+    clip_end(smooth_path, scaled<double>((double)m_config.coast_length), scaled<double>(min_gcode_segment_length), true);
 
     if (smooth_path.empty())
         return {};
@@ -3110,6 +3112,8 @@ std::string GCodeGenerator::_extrude(
             speed = m_config.get_abs_value("ironing_speed");
         } else if (path_attr.role == ExtrusionRole::GapFill) {
             speed = m_config.get_abs_value("gap_fill_speed");
+        } else if (path_attr.role == ExtrusionRole::Coast) {
+            speed = m_config.get_abs_value("coast_speed");
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
         }
@@ -3278,6 +3282,11 @@ std::string GCodeGenerator::_extrude(
 
     if (dynamic_speed_and_fan_speed.second >= 0)
         gcode += ";_RESET_FAN_SPEED\n";
+
+    if (path_attr.role == ExtrusionRoleModifier::Coast) {
+        coast_path += gcode;
+        gcode = "";
+    }
 
     this->set_last_pos(path.back().point);
     return gcode;
@@ -3681,8 +3690,11 @@ std::string GCodeGenerator::retract_and_wipe(bool toolchange)
         methods even if we performed wipe, since this will ensure the entire retraction
         length is honored in case wipe path was too short.  */
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
+    if (!coast_path.empty()) {
+        gcode += coast_path;
+        coast_path = "";
+    }
     gcode += m_writer.reset_e();
-
     return gcode;
 }
 
@@ -3717,6 +3729,7 @@ std::string GCodeGenerator::set_extruder(unsigned int extruder_id, double print_
 
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();
+    coast_path = "";
 
     if (m_writer.extruder() != nullptr) {
         // Process the custom end_filament_gcode.

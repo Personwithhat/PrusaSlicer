@@ -713,13 +713,15 @@ double clip_start(Path &path, const double len)
     return remaining;
 }
 
-double clip_end(Path &path, double distance)
+double clip_end(Path &path, double distance, Path* coast)
 {
     while (distance > 0) {
         const Segment last = path.back();
         path.pop_back();
         if (path.empty())
             break;
+        if (coast != nullptr)
+            coast->push_back(last);
         if (last.linear()) {
             // Linear segment
             Vec2d  v    = (path.back().point - last.point).cast<double>();

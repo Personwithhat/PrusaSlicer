@@ -481,6 +481,7 @@ private:
 
     OozePrevention                      m_ooze_prevention;
     GCode::Wipe                         m_wipe;
+    std::string                         coast_path;
     GCode::LabelObjects                 m_label_objects;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     JPSPathFinder                       m_avoid_crossing_curled_overhangs;
