@@ -3243,6 +3243,13 @@ std::string GCodeGenerator::_extrude(
         if (path_attr.role == ExtrusionRole::ExternalPerimeter)
             cooling_marker_setspeed_comments += ";_EXTERNAL_PERIMETER";
     }
+    
+    double rlength = RTOWER ? (double) (int(m_layer_index / 5) * EXTRUDER_CONFIG(retract_length)) : EXTRUDER_CONFIG(retract_length);
+    if (isCoast && RTOWER) {
+        char buf[32];
+        sprintf(buf, ";_RETRACT_LENGTH:%f\n", rlength);
+        gcode += buf;
+    }
 
     // F is mm per minute.
     gcode += m_writer.set_speed(F, "", cooling_marker_setspeed_comments);
@@ -3285,9 +3292,9 @@ std::string GCodeGenerator::_extrude(
                 if (const double line_length = (p - prev).norm(); line_length > 0) {
                     path_length += line_length;
                     double dE = !isCoast ? e_per_mm * line_length 
-                                         : it == std::next(path.begin()) ? -EXTRUDER_CONFIG(retract_length) : 0;
+                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/m_config.coast_cap) : 0;
                     gcode += m_writer.extrude_to_xy(p, dE, comment);
-                    if (isCoast && dE < 0)
+                    if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                         gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves in visual view
                 }
             } else {
@@ -3296,9 +3303,9 @@ std::string GCodeGenerator::_extrude(
                 const double line_length = angle * std::abs(radius);
                 path_length += line_length;
                 double dE = !isCoast ? e_per_mm * line_length 
-                                     : it == std::next(path.begin()) ? -EXTRUDER_CONFIG(retract_length) : 0;
+                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/m_config.coast_cap) : 0;
                 gcode += m_writer.extrude_to_xy_G2G3IJ(p, ij, it->ccw(), dE, comment);
-                if (isCoast && dE < 0)
+                if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                     gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves  in visual view
             }
             prev = p;

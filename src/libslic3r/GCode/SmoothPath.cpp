@@ -131,7 +131,7 @@ double clip_end(SmoothPath &path, double distance, double min_point_distance_thr
             if (max_coast_retract_distance > 0.0) {
                 orig.path_attributes.role       = ExtrusionRoleModifier::Coast;
                 orig.path.push_back(last_path.back());
-                cap_size(orig.path, max_coast_retract_distance);
+                orig.path_attributes.coast_count = cap_size(orig.path, max_coast_retract_distance);
                 std::reverse(orig.path.begin(), orig.path.end());
                 path.push_back(orig);
             }

@@ -481,7 +481,7 @@ double clip_start(Path &path, const double len);
 double clip_end(Path &path, const double len, Path *coast = nullptr);
 
 // For coasting, cap size of retract-coast.
-void cap_size(Path &path, const double len);
+int cap_size(Path &path, const double len);
 
 struct PathSegmentProjection
 {

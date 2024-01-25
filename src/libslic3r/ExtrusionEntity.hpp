@@ -127,6 +127,9 @@ struct ExtrusionAttributes : ExtrusionFlow
     // OVerhangAttributes are currently computed for perimeters if dynamic overhangs are enabled. 
     // They are used to control fan and print speed in export.
     std::optional<OverhangAttributes> overhang_attributes;
+
+    // Number of coasting segments.
+    int coast_count{0};
 };
 
 inline bool operator==(const ExtrusionAttributes &lhs, const ExtrusionAttributes &rhs)
