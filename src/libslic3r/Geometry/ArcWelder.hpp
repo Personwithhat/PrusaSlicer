@@ -478,7 +478,10 @@ void reverse(Path &path);
 // Clip start / end of a smooth path by len.
 // If path is shorter than len, remaining path length to trim will be returned.
 double clip_start(Path &path, const double len);
-double clip_end(Path &path, const double len, Path* coast = nullptr);
+double clip_end(Path &path, const double len, Path *coast = nullptr);
+
+// For coasting, cap size of retract-coast.
+void cap_size(Path &path, const double len);
 
 struct PathSegmentProjection
 {

@@ -756,6 +756,34 @@ double clip_end(Path &path, double distance, Path* coast)
     return distance;
 }
 
+void cap_size(Path &path, double distance)
+{
+    const Segment last = path.back();
+    path.pop_back();
+    assert(!path.empty());
+    if (last.linear()) {
+        // Linear segment
+        Vec2d  v    = (path.back().point - last.point).cast<double>();
+        double lsqr = v.squaredNorm();
+        if (lsqr > sqr(distance))
+            path.push_back({ last.point + (v * (distance / sqrt(lsqr))).cast<coord_t>() });
+    } else {
+        // Circular segment
+        double angle = arc_angle(path.back().point.cast<double>(), last.point.cast<double>(), last.radius);
+        double len   = std::abs(last.radius) * angle;
+        if (len > distance) {
+            // Rotate the segment end point in reverse towards the start point.
+            if (last.ccw())
+                angle *= -1.;
+            path.push_back({
+                last.point.rotated(angle * (distance / len),
+                    arc_center(path.back().point.cast<double>(), last.point.cast<double>(), double(last.radius), last.ccw()).cast<coord_t>()),
+                last.radius, last.orientation });
+        }
+    }
+    path.push_back(last);
+}
+
 PathSegmentProjection point_to_path_projection(const Path &path, const Point &point, double search_radius2)
 {
     assert(path.size() != 1);

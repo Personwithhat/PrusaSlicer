@@ -105,7 +105,7 @@ std::optional<Point> sample_path_point_at_distance_from_end(const SmoothPath &pa
 // Clip length of a smooth path, for seam hiding.
 // When clipping the end of a path, don't create segments shorter than min_point_distance_threshold, 
 // rather discard such a degenerate segment.
-double clip_end(SmoothPath &path, double distance, double min_point_distance_threshold, bool coast_clip)
+double clip_end(SmoothPath &path, double distance, double min_point_distance_threshold, double max_coast_retract_distance)
 {
     SmoothPathElement orig;
     orig.path_attributes = path.back().path_attributes;
@@ -128,10 +128,10 @@ double clip_end(SmoothPath &path, double distance, double min_point_distance_thr
                 if (last_path.size() < 2)
                     path.pop_back();
             }
-            if (coast_clip) {
+            if (max_coast_retract_distance > 0.0) {
                 orig.path_attributes.role       = ExtrusionRoleModifier::Coast;
-                orig.path_attributes.mm3_per_mm = 0.001; // HACK: If this is too low then it becomes a travel move in the View. The GCode appears to be unaffected. FIX! >.> 
                 orig.path.push_back(last_path.back());
+                cap_size(orig.path, max_coast_retract_distance);
                 std::reverse(orig.path.begin(), orig.path.end());
                 path.push_back(orig);
             }

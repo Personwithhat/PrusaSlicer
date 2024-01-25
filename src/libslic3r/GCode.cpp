@@ -2180,6 +2180,13 @@ LayerResult GCodeGenerator::process_layer(
     std::string gcode;
     assert(is_decimal_separator_point()); // for the sprintfs
 
+    if (!coast_path.empty()) {
+        gcode += coast_path;
+        coast_path = "";
+         gcode += ";TYPE: Perimeter\n"; // To clear m_coasting in gcode processor/viewer
+         gcode += m_writer.reset_e();
+    }
+
     // add tag for processor
     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
     // export layer z
@@ -2821,7 +2828,7 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
     // If clength <0.25 some weird visual artifacts happen. Soon as its above 0.25 e.g. 0.255 it renders properly, instead of missing one piece early-ish.
     // GCode looks fine though......
     double clength = CTOWER ? (double) (int(m_layer_index / 5) * m_config.coast_length) : m_config.coast_length;
-    double res = clip_end(smooth_path, scaled<double>(clength), scaled<double>(min_gcode_segment_length), true);
+    double res     = clip_end(smooth_path, scaled<double>(clength), scaled<double>(min_gcode_segment_length), scaled<double>((double)m_config.coast_cap));
     assert(res == 0);
 
     if (smooth_path.empty())
@@ -2835,8 +2842,10 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
 
     // Extrude along the smooth path.
     std::string gcode;
-    for (const GCode::SmoothPathElement &el : smooth_path)
-        gcode += this->_extrude(el.path_attributes, el.path, description, speed);
+    for (const GCode::SmoothPathElement &el : smooth_path) {
+        auto comment = el.path_attributes.role == ExtrusionRoleModifier::Coast ? "_Coast" : description;
+        gcode += this->_extrude(el.path_attributes, el.path, comment, speed);
+    }
 
     // reset acceleration
     gcode += m_writer.set_print_acceleration(fast_round_up<unsigned int>(m_config.default_acceleration.value));
@@ -3132,6 +3141,12 @@ std::string GCodeGenerator::_extrude(
         speed = m_config.get_abs_value("first_layer_speed", speed);
     else if (this->object_layer_over_raft())
         speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
+    
+    // Coasting will use coast-speed irregardless of any other settings.
+    bool isCoast = (path_attr.role == ExtrusionRole::Coast);
+    if (isCoast)
+        speed = m_config.get_abs_value("coast_speed");
+
     if (m_config.max_volumetric_speed.value > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
@@ -3269,16 +3284,22 @@ std::string GCodeGenerator::_extrude(
                 // Extrude line segment.
                 if (const double line_length = (p - prev).norm(); line_length > 0) {
                     path_length += line_length;
-                    gcode += m_writer.extrude_to_xy(p, e_per_mm * line_length, comment);
+                    double dE = !isCoast ? e_per_mm * line_length 
+                                         : it == std::next(path.begin()) ? -EXTRUDER_CONFIG(retract_length) : 0;
+                    gcode += m_writer.extrude_to_xy(p, dE, comment);
+                    if (isCoast && dE < 0)
+                        gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves in visual view
                 }
             } else {
                 double angle = Geometry::ArcWelder::arc_angle(prev.cast<double>(), p.cast<double>(), double(radius));
                 assert(angle > 0);
                 const double line_length = angle * std::abs(radius);
                 path_length += line_length;
-                const double dE = e_per_mm * line_length;
-                assert(dE > 0);
+                double dE = !isCoast ? e_per_mm * line_length 
+                                     : it == std::next(path.begin()) ? -EXTRUDER_CONFIG(retract_length) : 0;
                 gcode += m_writer.extrude_to_xy_G2G3IJ(p, ij, it->ccw(), dE, comment);
+                if (isCoast && dE < 0)
+                    gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves  in visual view
             }
             prev = p;
             prev_exact = p_exact;
@@ -3705,15 +3726,19 @@ std::string GCodeGenerator::retract_and_wipe(bool toolchange)
         gcode += m_wipe.wipe(*this, toolchange);
     }
 
+    if (!coast_path.empty()) {
+        gcode += coast_path;
+        coast_path = "";
+        gcode += ";TYPE:Perimeter\n"; // To clear m_coasting in gcode processor/viewer
+        gcode += m_writer.reset_e();
+        return gcode;
+    }
+
     /*  The parent class will decide whether we need to perform an actual retraction
         (the extruder might be already retracted fully or partially). We call these
         methods even if we performed wipe, since this will ensure the entire retraction
         length is honored in case wipe path was too short.  */
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
-    if (!coast_path.empty()) {
-        gcode += coast_path;
-        coast_path = "";
-    }
     gcode += m_writer.reset_e();
     return gcode;
 }
