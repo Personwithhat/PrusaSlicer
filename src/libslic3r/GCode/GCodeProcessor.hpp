@@ -560,7 +560,7 @@ namespace Slic3r {
         AxisCoords m_saved_position; // mm
         AxisCoords m_origin; // mm
         CachedPosition m_cached_position;
-        bool m_wiping;
+        bool m_wiping; bool m_coasting;
 
         unsigned int m_line_id;
         unsigned int m_last_line_id;

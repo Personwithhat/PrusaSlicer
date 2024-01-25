@@ -641,6 +641,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                infill_speed))
     ((ConfigOptionFloat,                coast_speed))
     ((ConfigOptionFloat,                coast_length))
+    ((ConfigOptionFloat,                coast_cap))
     ((ConfigOptionFloat,                seam_gap))
     // Ironing options
     ((ConfigOptionBool,                 ironing))

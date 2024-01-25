@@ -1505,6 +1505,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
     
+    def = this->add("coast_cap", coFloat);
+    def->label = L("Coast Cap");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Maximum amount of travel during coast retraction");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
     def = this->add("seam_gap", coFloat);
     def->label = L("Seam Gap");
     def->category = L("Layers and Perimeters");

@@ -978,6 +978,7 @@ void GCodeProcessor::reset()
     m_origin = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_cached_position.reset();
     m_wiping = false;
+    m_coasting = false;
 
     m_line_id = 0;
     m_last_line_id = 0;
@@ -1869,6 +1870,7 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         set_extrusion_role(string_to_gcode_extrusion_role(comment.substr(reserved_tag(ETags::Role).length())));
         if (m_extrusion_role == GCodeExtrusionRole::ExternalPerimeter)
             m_seams_detector.activate(true);
+        m_coasting = (m_extrusion_role == GCodeExtrusionRole::Coast || m_extrusion_role == GCodeExtrusionRole::CoastTravel);
         return;
     }
 
@@ -2571,8 +2573,10 @@ void GCodeProcessor::process_G1(const std::array<std::optional<double>, 4>& axes
     auto move_type = [this](const AxisCoords& delta_pos) {
         if (m_wiping)
             return EMoveType::Wipe;
+        else if (m_coasting)
+            return EMoveType::Extrude; //(delta_pos[E] < 0.0f) ? EMoveType::TravelRetract : EMoveType::Extrude;
         else if (delta_pos[E] < 0.0f)
-            return (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
+            return EMoveType::Retract;
         else if (delta_pos[E] > 0.0f) {
             if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f)
                 return (delta_pos[Z] == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;

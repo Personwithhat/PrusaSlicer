@@ -683,7 +683,8 @@ const std::array<ColorRGBA, static_cast<size_t>(GCodeExtrusionRole::Count)> GCod
     { 0.00f, 0.50f, 0.00f, 1.0f },   // GCodeExtrusionRole::SupportMaterialInterface
     { 0.70f, 0.89f, 0.67f, 1.0f },   // GCodeExtrusionRole::WipeTower
     { 0.37f, 0.82f, 0.58f, 1.0f },   // GCodeExtrusionRole::Custom
-    { 0.5f, 0.5f, 0.5f, 1.0f },     // GCodeExtrusionRole::Coast
+    {0.58f, 0.32f, 0.65f, 1.0f}, // GCodeExtrusionRole::Coast
+    {0.5f, 0.5f, 0.5f, 1.0f},    // GCodeExtrusionRole::CoastTravel
 }};
 
 const std::vector<ColorRGBA> GCodeViewer::Options_Colors{ {
@@ -2464,7 +2465,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         ColorRGBA color;
         switch (m_view_type)
         {
-        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::FeatureType:    { 
+            color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)];
+            if (path.role == GCodeExtrusionRole::Coast)
+                assert(path.delta_extruder < 0);
+            break; 
+        }
         case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
         case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
