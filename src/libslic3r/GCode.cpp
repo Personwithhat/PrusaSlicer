@@ -3316,6 +3316,12 @@ std::string GCodeGenerator::_extrude(
                     path_length += line_length;
                     double dE = !isCoast ? e_per_mm * line_length 
                                          : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/tlength) : 0;
+                    // HACK: Some kind of math error where retract is off by ~0.000044 or thereabouts.
+                    // Catch and add remainder so as not to trigger a tiny retract later.
+                    double togo = m_writer.extruder()->retract_to_go(rlength - dE);
+                    if (togo < 0.0001 && isCoast)
+                        dE -= togo;
+
                     gcode += m_writer.extrude_to_xy(p, dE, comment);
                     if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                         gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves in visual view
@@ -3327,6 +3333,12 @@ std::string GCodeGenerator::_extrude(
                 path_length += line_length;
                 double dE = !isCoast ? e_per_mm * line_length 
                                          : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/tlength) : 0;
+                // HACK: Some kind of math error where retract is off by ~0.000044 or thereabouts. 
+                // Catch and add remainder so as not to trigger a tiny retract later.
+                double togo = m_writer.extruder()->retract_to_go(rlength - dE);
+                if (togo < 0.0001 && isCoast)
+                    dE -= togo;
+
                 gcode += m_writer.extrude_to_xy_G2G3IJ(p, ij, it->ccw(), dE, comment);
                 if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                     gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves  in visual view
