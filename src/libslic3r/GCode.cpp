@@ -2801,8 +2801,10 @@ static inline bool validate_smooth_path(const GCode::SmoothPath &smooth_path, bo
 #endif //NDEBUG
 
 static constexpr const double min_gcode_segment_length = 0.002;
-#define CTOWER false
+#define RTOWER false
 #define STOWER false
+#define CTOWER false
+#define CapTower false
 
 std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GCode::SmoothPathCache &smooth_path_cache, const std::string_view description, double speed)
 {
@@ -2828,7 +2830,8 @@ std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GC
     // If clength <0.25 some weird visual artifacts happen. Soon as its above 0.25 e.g. 0.255 it renders properly, instead of missing one piece early-ish.
     // GCode looks fine though......
     double clength = CTOWER ? (double) (int(m_layer_index / 5) * m_config.coast_length) : m_config.coast_length;
-    double res     = clip_end(smooth_path, scaled<double>(clength), scaled<double>(min_gcode_segment_length), scaled<double>((double)m_config.coast_cap));
+    double tlength = CapTower ? (double) (int(m_layer_index / 5) * m_config.coast_cap) : m_config.coast_cap;
+    double res     = clip_end(smooth_path, scaled<double>(clength), scaled<double>(min_gcode_segment_length), scaled<double>(tlength));
     assert(res == 0);
 
     if (smooth_path.empty())
@@ -3244,11 +3247,31 @@ std::string GCodeGenerator::_extrude(
             cooling_marker_setspeed_comments += ";_EXTERNAL_PERIMETER";
     }
     
+    double tlength = CapTower ? (double) (int(m_layer_index / 5) * m_config.coast_cap) : m_config.coast_cap;
     double rlength = RTOWER ? (double) (int(m_layer_index / 5) * EXTRUDER_CONFIG(retract_length)) : EXTRUDER_CONFIG(retract_length);
-    if (isCoast && RTOWER) {
-        char buf[32];
-        sprintf(buf, ";_RETRACT_LENGTH:%f\n", rlength);
-        gcode += buf;
+    if (isCoast) {
+        if (CTOWER) {
+            double clength = (double) (int(m_layer_index / 5) * m_config.coast_length);
+            char   buf[32];
+            sprintf(buf, ";_COAST_LENGTH:%f\n", clength);
+            coast_path += buf;
+        }
+        if (STOWER) {
+            double sgap = (double) (int(m_layer_index / 5) * m_config.seam_gap);
+            char   buf[32];
+            sprintf(buf, ";_SEAM_GAP:%f -> %f\n", sgap, EXTRUDER_CONFIG(nozzle_diameter) * sgap);
+            coast_path += buf;
+        }
+        if (RTOWER) {
+            char buf[32];
+            sprintf(buf, ";_RETRACT_LENGTH:%f\n", rlength);
+            gcode += buf;
+        }
+        if (CapTower) {
+            char buf[32];
+            sprintf(buf, ";_COAST_TRAVEL:%f\n", tlength);
+            gcode += buf;
+        }
     }
 
     // F is mm per minute.
@@ -3292,7 +3315,7 @@ std::string GCodeGenerator::_extrude(
                 if (const double line_length = (p - prev).norm(); line_length > 0) {
                     path_length += line_length;
                     double dE = !isCoast ? e_per_mm * line_length 
-                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/m_config.coast_cap) : 0;
+                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/tlength) : 0;
                     gcode += m_writer.extrude_to_xy(p, dE, comment);
                     if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                         gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves in visual view
@@ -3303,7 +3326,7 @@ std::string GCodeGenerator::_extrude(
                 const double line_length = angle * std::abs(radius);
                 path_length += line_length;
                 double dE = !isCoast ? e_per_mm * line_length 
-                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/m_config.coast_cap) : 0;
+                                         : std::distance(path.begin(), it) <= path_attr.coast_count ? -rlength * (line_length/tlength) : 0;
                 gcode += m_writer.extrude_to_xy_G2G3IJ(p, ij, it->ccw(), dE, comment);
                 if (isCoast && std::distance(path.begin(), it) == path_attr.coast_count)
                     gcode += ";TYPE:Perimeter\n;TYPE:CoastTravel\n"; // To separate Coast-Retraction and Coast moves  in visual view
@@ -3319,19 +3342,7 @@ std::string GCodeGenerator::_extrude(
     if (dynamic_speed_and_fan_speed.second >= 0)
         gcode += ";_RESET_FAN_SPEED\n";
 
-    if (path_attr.role == ExtrusionRoleModifier::Coast) {
-        if (CTOWER) {
-            double clength = (double) (int(m_layer_index / 5) * m_config.coast_length);
-            char   buf[32];
-            sprintf(buf, ";_COAST_LENGTH:%f\n", clength);
-            coast_path += buf;
-        }
-        if (STOWER) {
-            double sgap = (double) (int(m_layer_index / 5) * m_config.seam_gap);
-            char   buf[32];
-            sprintf(buf, ";_SEAM_GAP:%f -> %f\n", sgap, EXTRUDER_CONFIG(nozzle_diameter) * sgap);
-            coast_path += buf;
-        }
+    if (isCoast) {
         coast_path += gcode;
         gcode = "";
     }
