@@ -3155,8 +3155,8 @@ std::string GCodeGenerator::_extrude(
     
     // Coasting will use coast-speed irregardless of any other settings.
     bool isCoast = (path_attr.role == ExtrusionRole::Coast);
-    if (isCoast)
-        speed = m_config.get_abs_value("coast_speed");
+    //if (isCoast)
+    //    speed = m_config.get_abs_value("coast_speed");
 
     if (m_config.max_volumetric_speed.value > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
@@ -3282,8 +3282,10 @@ std::string GCodeGenerator::_extrude(
         }
     }
 
-    // F is mm per minute.
-    gcode += m_writer.set_speed(F, "", cooling_marker_setspeed_comments);
+    // Coast will use existing speeds whether its inner or outer perimeter etc.
+    if (!isCoast)
+        // F is mm per minute.
+        gcode += m_writer.set_speed(F, "", cooling_marker_setspeed_comments);
     if (dynamic_speed_and_fan_speed.second >= 0)
         gcode += ";_SET_FAN_SPEED" + std::to_string(int(dynamic_speed_and_fan_speed.second)) + "\n";
     double path_length = 0.;
