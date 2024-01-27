@@ -73,6 +73,9 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
+    // When retracted, this value stores the extra amount of priming on deretraction.
+    double m_restart_extra{0};
+
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
@@ -89,8 +92,7 @@ private:
     double       m_absolute_E { 0 };
     // Current positive amount of retraction.
     double       m_retracted { 0 };
-    // When retracted, this value stores the extra amount of priming on deretraction.
-    double       m_restart_extra { 0 };
+
     double       m_e_per_mm3;
 };
 

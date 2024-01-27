@@ -3079,6 +3079,14 @@ std::string GCodeGenerator::_extrude(
         gcode += this->travel_to(path.front().point, path_attr.role, comment);
     }
 
+    //auto tmp = -0.0005; // m_writer.extruder()->m_restart_extra;
+    //m_writer.extruder()->m_restart_extra = (double) (int(m_layer_index / 5) * tmp);
+    //if (true) {
+     //   char buf[60];
+    //    sprintf(buf, ";_DeRetract_Offset:%f\n", m_writer.extruder()->m_restart_extra);
+    //    gcode += buf;
+    //}
+
     // compensate retraction
     gcode += this->unretract();
 
