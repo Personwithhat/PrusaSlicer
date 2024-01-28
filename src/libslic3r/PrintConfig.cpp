@@ -1521,12 +1521,12 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.5));
+    def->set_default_value(new ConfigOptionFloat(0.15));
     
     def = this->add("coast_cap", coFloat);
-    def->label = L("Coast Cap");
+    def->label = L("Coast Travel Length");
     def->category = L("Layers and Perimeters");
-    def->tooltip  = L("Maximum amount of travel during coast retraction");
+    def->tooltip  = L("Amount of travel during coast retraction");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1535,11 +1535,39 @@ void PrintConfigDef::init_fff_params()
     def = this->add("seam_gap", coFloat);
     def->label = L("Seam Gap");
     def->category = L("Layers and Perimeters");
-    def->tooltip  = L("Gap size for closed-loop seams, based on nozzle diameter");
+    def->tooltip  = L("Gap size for closed-loop seams, multiplied by nozzle diameter");
     def->sidetext = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER));
+
+    def           = this->add("tower_cap", coBool);
+    def->label    = L("Coast Travel Tower");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Enable tower for Coast Travel, increments by Coast Travel amount every 5 layers");
+    def->mode     = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("tower_c", coBool);
+    def->label    = L("Coast Tower");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Enable tower for Coast length, increments by Coast amount every 5 layers");
+    def->mode     = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("tower_r", coBool);
+    def->label    = L("Retraction Tower");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Enable tower for Retraction, increments by Retraction amount every 5 layers");
+    def->mode     = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("tower_s", coBool);
+    def->label    = L("Seam Gap Tower");
+    def->category = L("Layers and Perimeters");
+    def->tooltip  = L("Enable tower for Seam Gap, increments by Seam Gap amount every 5 layers");
+    def->mode     = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");

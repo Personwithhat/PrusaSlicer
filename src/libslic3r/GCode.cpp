@@ -2801,10 +2801,10 @@ static inline bool validate_smooth_path(const GCode::SmoothPath &smooth_path, bo
 #endif //NDEBUG
 
 static constexpr const double min_gcode_segment_length = 0.002;
-#define RTOWER false
-#define STOWER false
-#define CTOWER false
-#define CapTower false
+#define RTOWER m_config.tower_r
+#define STOWER m_config.tower_s
+#define CTOWER m_config.tower_c
+#define CapTower m_config.tower_cap
 
 std::string GCodeGenerator::extrude_loop(const ExtrusionLoop &loop_src, const GCode::SmoothPathCache &smooth_path_cache, const std::string_view description, double speed)
 {

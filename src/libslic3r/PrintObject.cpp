@@ -747,6 +747,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slice_closing_radius"
             || opt_key == "slicing_mode" 
             || opt_key == "coast_speed" || opt_key == "coast_length" || opt_key == "seam_gap" || opt_key == "coast_cap"
+            || opt_key == "tower_cap" || opt_key == "tower_c" || opt_key == "tower_r" || opt_key == "tower_s"
             ) {
             steps.emplace_back(posSlice);
 		} else if (

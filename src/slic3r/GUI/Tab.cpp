@@ -1491,6 +1491,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("gap_fill_enabled", category_path + "fill-gaps");
         optgroup->append_single_option_line("perimeter_generator");
 
+        optgroup = page->new_optgroup(L("Layer Towers"));
+        optgroup->append_single_option_line("tower_cap");
+        optgroup->append_single_option_line("tower_c");
+        optgroup->append_single_option_line("tower_s");
+        optgroup->append_single_option_line("tower_r");
+
         optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
         category_path = "fuzzy-skin_246186/#";
         optgroup->append_single_option_line("fuzzy_skin", category_path + "fuzzy-skin-type");
