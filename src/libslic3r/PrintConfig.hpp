@@ -612,6 +612,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_fill_flow_ratio))
     ((ConfigOptionFloat,                bridge_fill_spacing))
     ((ConfigOptionFloat,                bridge_speed))
+    ((ConfigOptionFloat,                overhang_speed))
+    ((ConfigOptionFloat,                overhang_flow_ratio))
     ((ConfigOptionEnum<InfillPattern>,  top_fill_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_fill_pattern))
     ((ConfigOptionFloatOrPercent,       external_perimeter_extrusion_width))

@@ -1597,6 +1597,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_speed");
         optgroup->append_single_option_line("support_material_interface_speed");
         optgroup->append_single_option_line("bridge_speed");
+        optgroup->append_single_option_line("overhang_speed");
         optgroup->append_single_option_line("gap_fill_speed");
         optgroup->append_single_option_line("ironing_speed");
 
@@ -1686,6 +1687,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_spacing");
         optgroup->append_single_option_line("bridge_fill_flow_ratio");
         optgroup->append_single_option_line("bridge_fill_spacing");
+        optgroup->append_single_option_line("overhang_flow_ratio");
 
         optgroup = page->new_optgroup(L("Slicing"));
         optgroup->append_single_option_line("slice_closing_radius");

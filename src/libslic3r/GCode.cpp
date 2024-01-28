@@ -3129,7 +3129,10 @@ std::string GCodeGenerator::_extrude(
             speed = m_config.get_abs_value("external_perimeter_speed");
         } else if (path_attr.role.is_bridge()) {
             assert(path_attr.role.is_perimeter() || path_attr.role == ExtrusionRole::BridgeInfill);
-            speed = m_config.get_abs_value("bridge_speed");
+            if (path_attr.role.is_perimeter())
+                speed = m_config.get_abs_value("overhang_speed");
+            else
+                speed = m_config.get_abs_value("bridge_speed");
         } else if (path_attr.role == ExtrusionRole::InternalInfill) {
             speed = m_config.get_abs_value("infill_speed");
         } else if (path_attr.role == ExtrusionRole::SolidInfill) {

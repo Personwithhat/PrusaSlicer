@@ -585,6 +585,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("overhang_flow_ratio", coFloat);
+    def->label = L("Perimeter overhang flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of plastic for perimeter overhangs, if those are enabled.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def           = this->add("bridge_fill_spacing", coFloat);
     def->label    = L("Bridge infill spacing");
     def->category = L("Advanced");
@@ -601,6 +610,15 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed for printing bridges.");
     def->sidetext = L("mm/s");
     def->aliases = { "bridge_feed_rate" };
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(60));
+
+    def = this->add("overhang_speed", coFloat);
+    def->label = L("Overhangs");
+    def->category = L("Speed");
+    def->tooltip = L("Speed for printing perimeter overhangs.");
+    def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
@@ -4768,6 +4786,9 @@ std::string validate(const FullPrintConfig &cfg)
     // --bridge-fill-spacing
     if (cfg.bridge_fill_spacing <= 0)
         return "Invalid value for --bridge-fill-spacing";
+    // --overhang-flow-ratio
+    if (cfg.overhang_flow_ratio <= 0)
+        return "Invalid value for --overhang-flow-ratio";
 
     // extruder clearance
     if (cfg.extruder_clearance_radius <= 0)

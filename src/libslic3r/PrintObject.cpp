@@ -861,7 +861,8 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "bridge_flow_ratio" 
             || opt_key == "bridge_fill_flow_ratio" 
             || opt_key == "bridge_fill_spacing"
-            || opt_key == "bridge_spacing") {
+            || opt_key == "bridge_spacing"
+            || opt_key == "overhang_flow_ratio") {
             if (m_config.support_material_contact_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
             	// If later "support_material_contact_distance" is modified, the complete PrintObject is invalidated anyway.
@@ -893,7 +894,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "external_perimeter_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "solid_infill_speed"
-            || opt_key == "top_solid_infill_speed") {
+            || opt_key == "top_solid_infill_speed"
+            || opt_key == "overhang_speed") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "wipe_into_infill"

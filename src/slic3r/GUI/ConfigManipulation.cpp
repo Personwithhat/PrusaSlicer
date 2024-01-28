@@ -246,7 +246,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "fill_angle", "bridge_angle", "infill_extrusion_width",
-                    "infill_speed", "bridge_speed" })
+                    "infill_speed", "bridge_speed", "overhang_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
     toggle_field("top_solid_min_thickness", ! has_spiral_vase && has_top_solid_infill);

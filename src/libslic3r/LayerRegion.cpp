@@ -43,6 +43,11 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool force_thick_bridges) const
     double                   flow_ratio     = force_thick_bridges ? region_config.bridge_fill_flow_ratio : region_config.bridge_flow_ratio;
     double                   space_ratio    = force_thick_bridges ? region_config.bridge_fill_spacing : region_config.bridge_spacing;
 
+    if (role == frPerimeter) {
+        flow_ratio  = region_config.overhang_flow_ratio;
+        space_ratio = region_config.bridge_fill_spacing; // Not sure if this is correct hmmmmmm...........
+    }
+
     if (print_object.config().thick_bridges) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
         // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
